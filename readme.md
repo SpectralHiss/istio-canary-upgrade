@@ -57,8 +57,16 @@ We then make the service label in the service patched to point at canary ingress
 
 we can revert these steps if there are any real difficulties other than the transient errors on rollout.
 
+After phase 3 is done the state looks like so:
+
+![bookinfo setup](bookinfo-phase3.png)
+
 ## Phase 4
 
 Finally we can in-place upgrade the "old" gateway, decomission the new ingress gateway and old istiod.
 we do this instead of keeping the canary and using it so that the state is similar to the initial state so 
-you can always do this in future cleanly
+you can always do this in future cleanly.
+
+The state looks like:
+
+![bookinfo setup](bookinfo-phase4.png)

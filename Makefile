@@ -39,7 +39,7 @@ phase2: $(ISCTL_DST) kind-ctx
 	@echo "Setting up new ingress gateway"
 	kubectl apply -f gateway-canary/
 	@echo "$$(tput setaf 2)New gateway is up, but not serving real traffic, we can actually test it by firing a single request"
-	@echo "try running: k port-forward istio-ingressgateway-canary-pod-name 9081:80"
+	@echo "try running: kubectl port-forward istio-ingressgateway-canary-pod-name 9081:80"
 	@echo "and visit localhost:9081 it will work fine!, however the logs will only be showing traffic coming from the right connected service$$(tput setaf 7)"
 
 .phony: revert-phase2
@@ -77,7 +77,6 @@ phase4:
 	kubectl rollout restart deploy istio-ingressgateway
 	echo "gateway is now at 1-12-0, we can revert the service back to it"
 	kubectl patch service istio-ingressgateway -p '{"spec":{"selector":{"app": "istio-ingressgateway"}}}'
-
 
 
 istio-%-linux-amd64.tar.gz:
