@@ -36,7 +36,29 @@ once all the above make sense and you're able to is app is live on your terminal
 - We rollout a new gateway using the canary revision tag, it is not serving any traffic
 - We ensure everything looks healthy
 
+to demonstrate how all these steps are reversible, which is the other big advantage of this approach
+you could run
+`make revert-phase2`, note that naturally you have to go in a sequential order phase1 -> 2 -> 3 -> 4
+and can revert each step one by one.
+
+This is the state of the world after phase 2 is applied:
+
+![bookinfo setup](bookinfo-phase2.png)
+
+
 ## Phase 3
 
-We update 
+We update the stable tag to revision 1-12-0, and "roll" all the applications,
+this may result in a few dropped connections when the old pods are terminated but there will always be capacity.
+
+We then make the service label in the service patched to point at canary ingressgateway
+
+`kubectl patch service istio-ingressgateway -p '{"spec":{"selector":{"app": "istio-ingressgateway"}}}'`
+
+we can revert these steps if there are any real difficulties other than the transient errors on rollout.
+
 ## Phase 4
+
+Finally we can in-place upgrade the "old" gateway, decomission the new ingress gateway and old istiod.
+we do this instead of keeping the canary and using it so that the state is similar to the initial state so 
+you can always do this in future cleanly
