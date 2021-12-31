@@ -113,5 +113,7 @@ clean-check-app:
 clean:
 	rm -rf $(RELEASE_DIR_SRC)
 	rm -rf $(RELEASE_DIR_DST)
-	kind delete cluster --name test-canary-upgrade
-	rm kind-cluster
+	kind delete cluster --name test-canary-upgrade || true
+	rm kind-cluster || true
+	rm istio-$(ISTIO_SRC_VERSION)-linux-amd64.tar.gz || true
+	rm istio-$(ISTIO_DST_VERSION)-linux-amd64.tar.gz || true

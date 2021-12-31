@@ -8,6 +8,10 @@ the start state is like this:
 we've had to set an env variable on reviews to point at the right host and move all the ds and vr appropriately
 to make this work
 
+This work is inspired from this servicemeshcon by the excellent Christian Posta,
+https://youtu.be/w60wfru-Grc?t=654 the talk introduces this great idea for a more granular upgrade flow
+but the implementation details are tricky to work out. We hope this demo will help clear any confusion.
+
 ![bookinfo setup](bookinfo-ns-setup.png)
 
 requirements:
