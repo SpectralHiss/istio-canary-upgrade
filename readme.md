@@ -24,7 +24,7 @@ the productpage, reviews and ratings should be accessible at `localhost:9080/pro
 the steps to run through are threefold:
 
 you can run:
-`make workloads-phase1` which will cascade down the chain to setup the initial view illustrated above.
+`make phase1` which will cascade down the chain to setup the initial view illustrated above.
 
 To start checking if there is any response you can run:
 `make check-app` and `make port-forward` in a separate panel/tab to be periodically checking the status of the app
@@ -74,3 +74,18 @@ you can always do this in future cleanly.
 The state looks like:
 
 ![bookinfo setup](bookinfo-phase4.png)
+
+
+Caveats:
+
+1) Always make sure that your namespace level labels do not overwrite the ones set on particular deployments,
+this means for example that we absolutely must have an ingress gateway in an alternate namespace as the stable tagged namespaces
+otherwise when setting canaries the desired injection will not happen on gateway!
+
+It is generally regarded as good practice to have ingress gateway split from regular workloads for isolation.
+
+2) This demo uses only http, in a real deployment you need to ensure your new gateway uses a compatible root or manually
+load the previous istiod root bundle when installing the new istiod version.
+
+3) We do the switch over as a one off at the service level, it is possible to do the exact same procedure and use weighted dns 
+entries or other loadbalancing to switch between two distinct services, which would be even more granular process.
