@@ -10,9 +10,12 @@ ISCTL_DST=$(RELEASE_DIR_DST)/bin/istioctl
 
 CTX=gke_jetstack-houssem-el-fekih_us-central1-c_istio-cluster-1
 
+getipsvc = $(shell kubectl get svc -n ingress $(1) -o 'jsonpath={.status.loadBalancer.ingress[0].ip}')
+INGRESS=$(call getipsvc, istio-ingressgateway)
 .PHONY: phase1
 phase1: ingressgw
 	kubectl apply -f samples/bookinfo/
+	sudo grep -qxF '$(INGRESS) bookinfo.org' /etc/hosts || sudo sh -c "echo '$(INGRESS) bookinfo.org' >> /etc/hosts"
 
 .PHONY: revert-phase1
 revert-phase1:
@@ -20,13 +23,14 @@ revert-phase1:
 	kubectl delete -f gateway-v1/ -n ingress
 
 .PHONY: ingressgw
+
 ingressgw: ctx nses istiovsrc initial-tags
 	kubectl apply -f gateway-v1/ -n ingress
 	kubectl rollout status -w deployment istio-ingressgateway -n ingress
 
 .PHONY: istiovsrc
 istiovsrc: ctx $(ISCTL_SRC)
-	$(ISCTL_SRC) install -f iop-v1.yaml
+	$(ISCTL_SRC) install -f iop-v1.yaml --skip-confirmation
 
 .PHONY: stable-tag
 initial-tags: $(ISCTL_SRC)
@@ -73,6 +77,8 @@ NEW_INGRESS=$(call getipsvc, istio-ingressgateway-canary)
 phase3: $(ISCTL_DST) ctx
 	@echo "$$(tput setaf 2)moving all workloads to production, switching gateway to canary , in place upgrading and reverting$$(tput setaf 7)"
 	$(ISCTL_DST) x revision tag set stable --revision $(subst .,-, $(ISTIO_DST_VERSION)) --overwrite=true
+	$(ISCTL_DST) x revision tag set default --revision $(subst .,-, $(ISTIO_DST_VERSION)) --overwrite=true
+
 	echo "$$(tput setaf 1)Warning, this is where the most noticeable downtime in the form of a few 500s might manifest itself when dropping productpage connections$$(tput setaf 7)"
 	-./rollout-all-stable-ns-deploys.sh
 	@echo "$$(tput setaf 2)make host point at canary, preferably using some slow traffic shifting (route53 weights are good for this) $$(tput setaf 7)"
@@ -115,8 +121,7 @@ istio-%/bin/istioctl: istio-%-linux-amd64.tar.gz
 	tar -xf $^
 
 check-app: ctx
-	./check-my-apps.sh &
-	touch check-app
+	./check-my-apps.sh
 
 ctx:
 	kubectl config use-context $(CTX)
@@ -135,7 +140,7 @@ clean-check-app:
 clean:
 	rm -rf $(RELEASE_DIR_SRC)
 	rm -rf $(RELEASE_DIR_DST)
-	-kind delete cluster --name test-canary-upgrade
-	rm kind-cluster || true
+	istioctl x uninstall --revision  $(subst .,-, $(ISTIO_SRC_VERSION))
+	istioctl x uninstall --revision  $(subst .,-, $(ISTIO_DST_VERSION))
 	-rm istio-$(ISTIO_SRC_VERSION)-linux-amd64.tar.gz
 	-rm istio-$(ISTIO_DST_VERSION)-linux-amd64.tar.gz
