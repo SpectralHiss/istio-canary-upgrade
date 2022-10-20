@@ -2,7 +2,7 @@
 apiVersion: install.istio.io/v1alpha1
 kind: IstioOperator
 spec:
-  revision: 1-12-0
+  revision: 1-14-5
   components:
     ingressGateways:
     - name: istio-ingressgateway

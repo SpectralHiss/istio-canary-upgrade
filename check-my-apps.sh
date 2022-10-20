@@ -5,13 +5,16 @@ function fail() {
 }
 
 echo "Primitive way to check app is serving traffic as required"
-echo "assumes ingressgateway svc is port-forwarded on 9080"
+echo "Assumes you've setup /etc/hosts with the correct loadbalancer IP with the host below"
+SITE_ADDR=bookinfo.org
+
 
 while true; do
   echo "$(tput setaf 3)Bookinfo via Istio Ingress Gateway$(tput setaf 7)"
   FAIL="false"
 
-  OUT=$(curl -i -s localhost:9080/productpage)
+  curl -v -I -q http://${SITE_ADDR}/productpage
+  OUT=$(curl -i -s http://${SITE_ADDR}/productpage)
   if ! [ "$?" -eq 0 ]; then
     FAIL="true"
   fi
